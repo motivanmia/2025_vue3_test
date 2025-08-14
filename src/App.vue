@@ -1,7 +1,10 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from "vue";
+import FavList from "./components/FavList.vue";
 // 任務1. 引入FavList組件到App.vue的aside中
 
+import { useFavoriteStore } from "@/stores/favorites";
+const favoriteStore = useFavoriteStore();
 // 如果使用pinia
 // import { useFavoriteStore } from '@/stores/favorites'
 // const favoriteStore = useFavoriteStore()
@@ -9,35 +12,53 @@ import { ref, onMounted } from 'vue'
 // 任務2. 顯示專輯資料
 // 目前畫面中僅呈現defaultData
 // 請將資料替換成`public/albums.json`中的專輯資料
-const defaultData = {
-  "id": 1,
-  "images": "https://i.scdn.co/image/ab67616d00001e023e59f3e73b99ed248ab7bae2",
-  "name": "Day & Night (feat. Jay Park)",
-  "artists": "Lee Young Ji"
-}
-onMounted(()=>{
-  //fetch('src/assets/albums.json')
-})
+// const defaultData = {
+//   id: 1,
+//   images: "https://i.scdn.co/image/ab67616d00001e023e59f3e73b99ed248ab7bae2",
+//   name: "Day & Night (feat. Jay Park)",
+//   artists: "Lee Young Ji",
+// };
+const albumsData = ref([]);
+onMounted(() => {
+  fetch("src/assets/albums.json")
+    .then((res) => res.json())
+    .then((data) => {
+      albumsData.value = data;
+    });
+});
 
 // 任務3:開啟關閉側拉選單(收藏列表)
-const asideToggle = ref(false)
-const toggleAside = () => {}
+const asideToggle = ref(false);
+const toggleAside = () => {
+  asideToggle.value = !asideToggle.value;
+};
 
 // 任務4.專輯資料可以被input搜尋
-const search = ref('')
-
+const search = ref("");
+const albumsFilter = computed(() => {
+  if (!search.value) {
+    return albumsData.value;
+  }
+  return albumsData.value.filter((album) => {
+    // 把專輯、歌手名稱、搜尋文字都轉成小寫
+    const albumName = album.name.toLowerCase();
+    const artistsName = album.artists.toLowerCase();
+    const searchLower = search.value.toLowerCase();
+    return albumName.includes(searchLower) || artistsName.includes(searchLower);
+  });
+});
 // 任務5.加入我的收藏
 // 不限定方式，如果不知道怎麼使用pinia可以用其他方式
-const addFav = (item) => {
-  console.log(item);
-}
-
+const addFav = (album) => {
+  favoriteStore.addFav(album);
+  // const found = console.log(item);
+};
 </script>
 
 <template>
   <header>
     <div>
-      <input type="search" v-model="search" />
+      <input type="search" v-model="search" placeholder="搜尋 專輯、歌手名稱" />
       <button @click="toggleAside">
         <img src="~@/assets/heartRed.png" alt="收藏列表" />
       </button>
@@ -45,14 +66,14 @@ const addFav = (item) => {
   </header>
 
   <main>
-    <div class="card">
-      <img :src="defaultData.images" />
+    <div class="card" v-for="album in albumsFilter" :key="album.id">
+      <img :src="album.images" />
       <div class="card_body">
-        <h6>{{ defaultData.name }}</h6>
-        <p>{{ defaultData.artists }}</p>
+        <h6>{{ album.name }}</h6>
+        <p>{{ album.artists }}</p>
       </div>
       <div class="card_footer">
-        <button class="favoriteBtn" @click="addFav(defaultData)">
+        <button class="favoriteBtn" @click="addFav(album)">
           <img src="~@/assets/heartBlack.png" alt="收藏專輯" />
         </button>
       </div>
@@ -61,16 +82,17 @@ const addFav = (item) => {
 
   <aside :class="{ open: asideToggle }">
     <!-- 收藏清單 -->
+    <FavList />
   </aside>
 </template>
 
 <style lang="scss">
-button{
+button {
   width: 2rem;
   height: 2rem;
   border-radius: 2rem;
   padding: 0.2rem;
-  img{
+  img {
     width: 100%;
   }
 }
@@ -81,7 +103,7 @@ header {
   width: 100%;
   z-index: 2;
   background-color: #f9f9f9;
-  >div{
+  > div {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
