@@ -6,20 +6,20 @@ export const useFavoriteStore = defineStore("favoriteStore", () => {
   const list = ref([]);
 
   // 任務8. 加入我的最愛
-  const addFav = (target) => {
-    const found = list.value.find((item) => item.id === target.id);
+  const addFav = (album) => {
+    const found = list.value.find((item) => item.id === album.id);
     if (!found) {
-      list.value.push(target);
+      list.value.push(album);
     }
-    // console.log(target);
+    // console.log(album);
   };
 
   // 移除我的最愛
-  const removeFav = (target) => {
-    const targetID = target && target.id ? target.id : null;
-    if (!targetID) return;
+  const removeFav = (album) => {
+    const albumID = album && album.id ? album.id : null;
+    if (!albumID) return;
 
-    const idx = list.value.findIndex((fav) => fav.id == targetID);
+    const idx = list.value.findIndex((fav) => fav.id == albumID);
     if (idx >= 0) {
       list.value.splice(idx, 1);
     }

@@ -7,8 +7,8 @@ const favoriteStore = useFavoriteStore();
 
 // 任務6. 移除收藏列表，不限定方式
 // const favList = ref([]);
-const removeFav = (target) => {
-  favoriteStore.removeFav(target);
+const removeFav = (album) => {
+  favoriteStore.removeFav(album);
 };
 </script>
 
@@ -22,7 +22,7 @@ const removeFav = (target) => {
 
     <div v-else class="container">
       <!-- 任務7-2. 顯示收藏列表-->
-      <div class="list" v-for="item in favList" :key="item.id">
+      <div class="list" v-for="item in favoriteStore.list" :key="item.id">
         <img :src="item.images" />
         <div class="list_content">
           <h6>{{ item.name }}</h6>
